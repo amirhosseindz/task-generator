@@ -37,7 +37,7 @@ const TaskCard = ({ task, isSelected = false, exportedInfo = null, onUpdate, onD
   };
 
   return (
-    <>
+    <div className="h-full">
       <TaskFormModal
         isOpen={isEditing}
         initialTask={task}
@@ -62,7 +62,7 @@ const TaskCard = ({ task, isSelected = false, exportedInfo = null, onUpdate, onD
         message={successMessage?.message}
         onClose={() => setSuccessMessage(null)}
       />
-    <div className={`bg-white rounded-lg shadow-md p-6 border-2 transition-shadow ${isSelected ? 'border-blue-500' : 'border-gray-200 hover:shadow-lg'}`}>
+      <div className={`flex flex-col h-full bg-white rounded-lg shadow-md p-6 border-2 transition-shadow ${isSelected ? 'border-blue-500' : 'border-gray-200 hover:shadow-lg'}`}>
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-start gap-2 flex-1">
           {onSelect && (
@@ -128,7 +128,7 @@ const TaskCard = ({ task, isSelected = false, exportedInfo = null, onUpdate, onD
         </div>
       )}
       
-      <div className="mt-4 pt-4 border-t border-gray-200 flex gap-2">
+      <div className="mt-auto pt-4 border-t border-gray-200 flex gap-2">
         <button
           onClick={() => setIsEditing(true)}
           className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
@@ -145,7 +145,7 @@ const TaskCard = ({ task, isSelected = false, exportedInfo = null, onUpdate, onD
         )}
       </div>
     </div>
-    </>
+    </div>
   );
 };
 
