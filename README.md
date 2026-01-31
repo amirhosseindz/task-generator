@@ -6,6 +6,10 @@ A full-stack web application that automatically extracts structured tasks from m
 
 - **AI-Powered Task Extraction**: Automatically extracts tasks from meeting minutes using OpenAI GPT models
 - **Structured Task Output**: Generates tasks with subject, criteria, action items, assignee, and priority
+- **Task Editing**: Edit, delete, and add new tasks after generation with full CRUD operations
+- **Jira Integration**: Export tasks directly to Jira with OAuth 2.1 authentication
+- **Bulk Operations**: Select and export multiple tasks to Jira at once
+- **Export Status Tracking**: Track which tasks have been exported with Jira issue links
 - **Modern UI**: Built with React and Tailwind CSS for a clean, responsive interface
 - **Hot-Reload Development**: Fast development experience with Vite HMR and Nodemon
 - **Docker Support**: Containerized development and production environments
@@ -590,6 +594,131 @@ VITE_API_URL=https://api.your-domain.com
 ```
 
 **Note:** If you change the backend port in `docker.env`, you should update `VITE_API_URL` in this file to match the new backend port.
+
+### Jira Integration Environment Variables
+
+For Jira integration functionality, additional environment variables need to be configured in your backend environment files (`backend/.env.development` or `backend/.env.production`):
+
+```env
+# Jira MCP Server URL (optional, defaults to Atlassian's official server)
+JIRA_MCP_SERVER_URL=https://mcp.atlassian.com/v1/mcp
+
+# Atlassian OAuth Configuration (required for Jira export)
+ATLASSIAN_CLIENT_ID=your-client-id-here
+ATLASSIAN_CLIENT_SECRET=your-client-secret-here
+
+# OAuth Redirect URI (must match your OAuth app configuration)
+OAUTH_REDIRECT_URI=http://localhost:5000/api/jira/oauth/callback
+
+# Session Secret (required for secure session management)
+SESSION_SECRET=your-session-secret-here
+
+# Credential Encryption Key (optional, falls back to SESSION_SECRET)
+CREDENTIAL_ENCRYPTION_KEY=your-encryption-key-here
+```
+
+**Important Notes:**
+- `SESSION_SECRET` and `CREDENTIAL_ENCRYPTION_KEY` should be strong random strings
+- Generate secrets using: `openssl rand -hex 32`
+- Use different secrets for development and production environments
+- The `OAUTH_REDIRECT_URI` must exactly match the redirect URI configured in your Atlassian OAuth app
+
+For detailed Jira setup instructions, see [docs/JIRA_SETUP.md](docs/JIRA_SETUP.md).
+
+## Task Editing
+
+The application supports full task management capabilities after generation:
+
+### Editing Tasks
+
+- **Edit Mode**: Click the "Edit" button on any task card to enter edit mode
+- **Editable Fields**:
+  - **Subject**: Task title (text input, max 255 characters)
+  - **Criteria**: Acceptance criteria (textarea)
+  - **Action Items**: Dynamic list with add/remove functionality
+  - **Assignee**: Person responsible (text input, optional)
+  - **Priority**: Dropdown selection (High/Medium/Low)
+- **Save Changes**: Click "Save" to persist changes or "Cancel" to discard
+- **Validation**: All fields are validated before saving
+
+### Adding New Tasks
+
+- Click the "Add New Task" button in the task list
+- Fill in the task details in the new task card
+- Save to add the task to your list
+
+### Deleting Tasks
+
+- **Single Task**: Click the "Delete" button on a task card
+- **Bulk Delete**: Select multiple tasks using checkboxes and click "Delete Selected"
+- Confirm deletion when prompted
+
+### Task Selection
+
+- Use checkboxes to select individual tasks
+- "Select All" / "Deselect All" buttons for bulk operations
+- Selected tasks are highlighted for easy identification
+
+## Jira Export
+
+Export your tasks directly to Jira with OAuth 2.1 authentication and MCP integration.
+
+### Prerequisites
+
+1. **Atlassian OAuth App**: Create an OAuth app in your Atlassian account
+   - Go to https://developer.atlassian.com/console/myapps/
+   - Create a new OAuth 2.1 app
+   - Configure redirect URI: `http://localhost:5000/api/jira/oauth/callback` (development)
+   - Note your Client ID and Client Secret
+   - See [docs/JIRA_SETUP.md](docs/JIRA_SETUP.md) for detailed instructions
+
+2. **Backend Configuration**: Configure OAuth credentials in your backend environment file
+   - Set `ATLASSIAN_CLIENT_ID` and `ATLASSIAN_CLIENT_SECRET`
+   - Set `OAUTH_REDIRECT_URI` to match your OAuth app configuration
+   - Set `SESSION_SECRET` for secure session management
+
+### Export Workflow
+
+1. **Connect to Jira**:
+   - Click "Connect to Jira" button (if not already connected)
+   - OAuth popup window opens
+   - Log in to your Atlassian account
+   - Authorize the application to access your Jira site
+   - Connection status is displayed in the header
+
+2. **Select Tasks**:
+   - Select individual tasks using checkboxes
+   - Or use "Select All" to export all tasks
+   - Selected tasks are highlighted
+
+3. **Export to Jira**:
+   - Click "Export Selected to Jira" or "Export All to Jira"
+   - Select target Jira project from dropdown
+   - Select issue type (Task, Story, Bug, Epic, etc.)
+   - Review task preview
+   - Click "Confirm Export"
+
+4. **Track Export Status**:
+   - Exported tasks display a badge with Jira issue key
+   - Click the issue key to open the task in Jira
+   - Export status is persisted in your session
+
+### Export Features
+
+- **Bulk Export**: Export multiple tasks in a single operation
+- **Project Selection**: Choose from available Jira projects
+- **Issue Type Selection**: Select appropriate issue type for your workflow
+- **Status Tracking**: Visual indicators show which tasks have been exported
+- **Direct Links**: Click issue keys to open tasks directly in Jira
+- **Error Handling**: Clear error messages for failed exports with retry options
+
+### Disconnecting from Jira
+
+- Click the connection status badge in the header
+- Select "Disconnect" to clear OAuth tokens
+- You'll need to reconnect before exporting again
+
+For step-by-step user instructions, see [docs/USER_GUIDE.md](docs/USER_GUIDE.md).
 
 ## API Documentation
 
