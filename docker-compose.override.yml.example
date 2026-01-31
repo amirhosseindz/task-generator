@@ -1,0 +1,49 @@
+# ============================================
+# Docker Compose Override Example
+# ============================================
+# Copy this file to docker-compose.override.yml for local customizations
+# This file allows you to override docker-compose settings without modifying
+# the main docker-compose files
+# DO NOT commit docker-compose.override.yml to version control
+
+version: '3.8'
+
+services:
+  # Backend service overrides
+  backend:
+    # Example: Override environment variables
+    environment:
+      # Uncomment and modify as needed
+      # PORT: 5001
+      # LOG_LEVEL: debug
+    
+    # Example: Add additional volumes
+    volumes:
+      # Uncomment to mount additional directories
+      # - ./backend/custom-config:/app/config
+    
+    # Example: Override command
+    # command: npm run dev -- --inspect
+
+  # Frontend service overrides
+  frontend:
+    # Example: Override environment variables
+    environment:
+      # Uncomment and modify as needed
+      # VITE_API_URL: http://localhost:5001
+    
+    # Example: Add additional volumes
+    volumes:
+      # Uncomment to mount additional directories
+      # - ./frontend/custom-assets:/app/public/assets
+    
+    # Example: Override ports
+    # ports:
+    #   - "3001:3000"
+
+# Example: Add additional services
+# services:
+#   redis:
+#     image: redis:alpine
+#     ports:
+#       - "6379:6379"

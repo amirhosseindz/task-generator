@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: dev
+    container_name: task-generator-backend-dev
+    ports:
+      - "5000:5000"
+    volumes:
+      # Mount source code for hot-reload
+      - ./backend/src:/app/src
+      - ./backend/config:/app/config
+      # Exclude node_modules to use container's dependencies
+      - /app/node_modules
+    env_file:
+      - ./backend/config/dev.env
+    environment:
+      - NODE_ENV=development
+    networks:
+      - task-generator-dev
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: dev
+    container_name: task-generator-frontend-dev
+    ports:
+      - "3000:3000"
+    volumes:
+      # Mount source code for HMR
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+      - ./frontend/index.html:/app/index.html
+      # Exclude node_modules to use container's dependencies
+      - /app/node_modules
+    env_file:
+      - ./frontend/.env.development
+    environment:
+      - NODE_ENV=development
+    networks:
+      - task-generator-dev
+    restart: unless-stopped
+    depends_on:
+      - backend
+    stdin_open: true
+    tty: true
+
+networks:
+  task-generator-dev:
+    driver: bridge
