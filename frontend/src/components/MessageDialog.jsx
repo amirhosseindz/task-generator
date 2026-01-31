@@ -36,36 +36,27 @@ const MessageDialog = ({ isOpen, variant = 'info', title, message, onClose }) =>
 
   const style = variantStyles[variant] || variantStyles.info;
 
-  const handleBackdropClick = (e) => {
-    if (e.target === e.currentTarget) onClose();
-  };
-
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50"
-      onClick={handleBackdropClick}
-      role="dialog"
-      aria-modal="true"
+      className="fixed bottom-4 right-4 z-[60] max-w-sm w-full p-4"
+      role="alert"
       aria-labelledby="message-dialog-title"
     >
-      <div
-        className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6 text-center"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-5 text-center">
         {style.icon}
-        <h3 id="message-dialog-title" className={`mt-4 text-lg font-semibold ${style.titleClass}`}>
+        <h3 id="message-dialog-title" className={`mt-3 text-base font-semibold ${style.titleClass}`}>
           {title}
         </h3>
         {message && (
-          <p className="mt-2 text-sm text-gray-600">
+          <p className="mt-1.5 text-sm text-gray-600">
             {message}
           </p>
         )}
-        <div className="mt-6">
+        <div className="mt-4">
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex w-full justify-center rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
+            className="inline-flex w-full justify-center rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
           >
             OK
           </button>

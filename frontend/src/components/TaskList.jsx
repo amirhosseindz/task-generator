@@ -40,6 +40,11 @@ const TaskList = ({
     }
   }, [someSelected]);
 
+  const handleDeleteTask = (taskId) => {
+    onDelete(taskId);
+    setSuccessMessage({ title: 'Task deleted', message: 'The task has been deleted successfully.' });
+  };
+
   return (
     <div>
       {/* Bulk Actions Bar */}
@@ -143,7 +148,7 @@ const TaskList = ({
             isSelected={selectedTasks.has(task.id)}
             exportedInfo={exportedTasks.get(task.id) || null}
             onUpdate={onUpdate}
-            onDelete={onDelete}
+            onDelete={handleDeleteTask}
             onSelect={onSelect}
           />
         ))}

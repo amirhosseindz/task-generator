@@ -32,9 +32,8 @@ const TaskCard = ({ task, isSelected = false, exportedInfo = null, onUpdate, onD
   };
 
   const handleDeleteConfirm = () => {
-    onDelete(task.id);
     setShowDeleteConfirm(false);
-    setSuccessMessage({ title: 'Task deleted', message: 'The task has been deleted successfully.' });
+    onDelete(task.id);
   };
 
   return (
