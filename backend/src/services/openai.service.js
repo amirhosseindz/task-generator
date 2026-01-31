@@ -28,16 +28,12 @@ class OpenAIService {
    * @returns {Promise<Object>} Structured task data
    */
   async extractTasks(meetingMinutes) {
-    const systemPrompt = `You are a task extraction assistant. Analyze meeting minutes and extract structured tasks.
+    const systemPrompt = `You are a task extraction assistant. Analyze the provided text and determine if it is meeting minutes (notes from a meeting, discussion summary, or similar). 
 
-For each task identified, provide:
-- subject: A clear, concise subject/title for the task
-- criteria: The acceptance criteria or definition of done
-- actionItems: An array of specific action items needed to complete the task
-- assignee: The person responsible (extract from meeting minutes, or "Unassigned" if not specified)
-- priority: One of "high", "medium", or "low" based on urgency and importance
+If the text is NOT meeting minutes (e.g. it is a recipe, code, random text, a single phrase, or unrelated content), return ONLY this exact JSON with no other fields:
+{"notMeetingMinutes": true}
 
-Return ONLY a valid JSON object with this exact structure:
+If the text IS meeting minutes, extract structured tasks and return ONLY a valid JSON object with this exact structure:
 {
   "tasks": [
     {
@@ -49,6 +45,13 @@ Return ONLY a valid JSON object with this exact structure:
     }
   ]
 }
+
+For each task identified, provide:
+- subject: A clear, concise subject/title for the task
+- criteria: The acceptance criteria or definition of done
+- actionItems: An array of specific action items needed to complete the task
+- assignee: The person responsible (extract from meeting minutes, or "Unassigned" if not specified)
+- priority: One of "high", "medium", or "low" based on urgency and importance
 
 Do not include any markdown formatting, code blocks, or additional text. Only return the JSON object.`;
 
@@ -74,7 +77,14 @@ Do not include any markdown formatting, code blocks, or additional text. Only re
 
       // Parse the JSON response
       const parsed = JSON.parse(content);
-      
+
+      // Check if the input was not meeting minutes
+      if (parsed.notMeetingMinutes === true) {
+        const err = new Error('Please provide a valid meeting minute!');
+        err.statusCode = 400;
+        throw err;
+      }
+
       // Validate the structure
       if (!parsed.tasks || !Array.isArray(parsed.tasks)) {
         throw new Error('Invalid response structure from OpenAI');
