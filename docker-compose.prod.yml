@@ -10,7 +10,7 @@ services:
     ports:
       - "5000:5000"
     env_file:
-      - ./backend/config/prod.env
+      - ./backend/.env.production
     environment:
       - NODE_ENV=production
     networks:
