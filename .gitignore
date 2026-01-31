@@ -19,6 +19,8 @@ backend/.env
 frontend/.env
 frontend/.env.development
 frontend/.env.production
+backend/config/.env.dev
+backend/config/.env.prod
 
 # Build outputs
 dist/

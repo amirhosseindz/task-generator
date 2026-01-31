@@ -27,8 +27,13 @@ apiClient.interceptors.response.use(
   (error) => {
     // Handle common error cases
     if (error.response) {
-      // Server responded with error status
-      const message = error.response.data?.message || error.response.data?.error || 'An error occurred';
+      // Server responded with error status (backend sends { error: { message } })
+      const data = error.response.data;
+      const rawMessage = data?.error?.message ?? data?.message ?? data?.error ?? 'An error occurred';
+      const message = typeof rawMessage === 'string' ? rawMessage : (rawMessage?.message ?? 'An error occurred');
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/bae9a160-b71d-481f-8ab8-0f7e4f312bd8',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.service.js:interceptor',message:'response error',data:{status:error.response?.status,messageType:typeof message,runId:'post-fix'},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B,E'})}).catch(()=>{});
+      // #endregion
       return Promise.reject(new Error(message));
     } else if (error.request) {
       // Request was made but no response received

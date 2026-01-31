@@ -23,7 +23,11 @@ function App() {
         throw new Error('Invalid response format from server');
       }
     } catch (err) {
-      setError(err.message || 'Failed to generate tasks. Please try again.');
+      // #region agent log
+      const msg = err.message || 'Failed to generate tasks. Please try again.';
+      fetch('http://127.0.0.1:7242/ingest/bae9a160-b71d-481f-8ab8-0f7e4f312bd8',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'App.jsx:catch',message:'setError called',data:{errMessageType:typeof err?.message,errMessage:typeof err?.message==='string'?err.message?.slice(0,80):String(err?.message)},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
+      setError(msg);
     } finally {
       setIsLoading(false);
     }

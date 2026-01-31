@@ -29,7 +29,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-      target: dev
+      target: development
     container_name: task-generator-frontend-dev
     ports:
       - "3000:3000"
