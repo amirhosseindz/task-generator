@@ -965,36 +965,6 @@ docker-compose -f docker-compose.prod.yml up -d --build
 
 The make commands automate all of these steps for a smoother deployment experience.
 
-### CI/CD Pipeline
-
-The project includes GitHub Actions workflows for automated CI/CD:
-
-#### CI Workflow (`.github/workflows/ci.yml`)
-
-- Triggers on push to `main`/`develop` branches and pull requests
-- Runs linting and tests for both backend and frontend
-- Builds Docker images
-- Runs integration tests
-
-#### CD Development (`.github/workflows/cd-dev.yml`)
-
-- Triggers on push to `develop` branch
-- Builds and pushes images to GitHub Container Registry with `dev` tag
-- Deploys to development environment
-
-#### CD Production (`.github/workflows/cd-prod.yml`)
-
-- Triggers on push to `main` branch or manual dispatch
-- Builds and pushes images with `latest` and version tags
-- Deploys to production environment
-- Runs post-deployment health checks
-
-**Required GitHub Secrets:**
-- `OPENAI_API_KEY`: OpenAI API key
-- `GHCR_TOKEN`: GitHub Container Registry authentication token
-- `DEPLOY_DEV_HOST`: Development server host (optional)
-- `DEPLOY_PROD_HOST`: Production server host (optional)
-
 ## Testing
 
 ### Backend Tests
@@ -1113,10 +1083,6 @@ docker-compose -f docker-compose.dev.yml down
 
 ```
 task-generator/
-├── .github/workflows/          # CI/CD pipeline configurations
-│   ├── ci.yml                  # Continuous Integration workflow
-│   ├── cd-dev.yml             # Development deployment workflow
-│   └── cd-prod.yml            # Production deployment workflow
 ├── backend/                    # Backend application
 │   ├── src/
 │   │   ├── config/            # Configuration files
