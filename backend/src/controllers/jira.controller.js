@@ -8,12 +8,20 @@ import { generateOAuthState } from '../utils/jira.utils.js';
  * Initiate OAuth flow - return authorization URL
  * GET /api/jira/oauth/authorize
  */
-export const initiateOAuth = (req, res, next) => {
+export const initiateOAuth = async (req, res, next) => {
   try {
     const state = generateOAuthState();
     
     // Store state in session for CSRF protection
     req.session.oauthState = state;
+    
+    // Explicitly save session to ensure it's persisted
+    await new Promise((resolve, reject) => {
+      req.session.save((err) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
     
     const authUrl = jiraOAuthService.initiateOAuthFlow(state);
     
