@@ -2,6 +2,7 @@ import { useState } from 'react';
 import JiraProjectSelector from './JiraProjectSelector';
 import JiraIssueTypeSelector from './JiraIssueTypeSelector';
 import ExportProgressModal from './ExportProgressModal';
+import MessageDialog from '../MessageDialog';
 import { exportTasks } from '../../services/jira.service';
 
 const JiraExportPanel = ({ tasks, onExport, onClose }) => {
@@ -12,15 +13,16 @@ const JiraExportPanel = ({ tasks, onExport, onClose }) => {
   const [progress, setProgress] = useState(null);
   const [results, setResults] = useState([]);
   const [errors, setErrors] = useState([]);
+  const [validationMessage, setValidationMessage] = useState(null);
 
   const handleExport = async () => {
     if (!projectKey || !issueType) {
-      alert('Please select both a project and issue type');
+      setValidationMessage('Please select both a project and issue type.');
       return;
     }
 
     if (!tasks || tasks.length === 0) {
-      alert('No tasks to export');
+      setValidationMessage('No tasks to export.');
       return;
     }
 
@@ -91,6 +93,13 @@ const JiraExportPanel = ({ tasks, onExport, onClose }) => {
 
   return (
     <>
+      <MessageDialog
+        isOpen={!!validationMessage}
+        variant="error"
+        title="Export"
+        message={validationMessage || undefined}
+        onClose={() => setValidationMessage(null)}
+      />
       <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-xl font-semibold text-gray-800">Export to Jira</h3>

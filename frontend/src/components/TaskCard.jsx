@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import PrioritySelector from './jira/PrioritySelector';
-import ActionItemsEditor from './jira/ActionItemsEditor';
+import TaskFormModal from './TaskFormModal';
+import MessageDialog from './MessageDialog';
+import ConfirmDialog from './ConfirmDialog';
 
 const TaskCard = ({ task, isSelected = false, exportedInfo = null, onUpdate, onDelete, onSelect }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [editedTask, setEditedTask] = useState({ ...task });
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [successMessage, setSuccessMessage] = useState(null);
 
   const getPriorityColor = (priority) => {
     switch (priority?.toLowerCase()) {
@@ -19,108 +21,48 @@ const TaskCard = ({ task, isSelected = false, exportedInfo = null, onUpdate, onD
     }
   };
 
-  const handleSave = () => {
-    // Validate before saving
-    if (!editedTask.subject || editedTask.subject.trim().length === 0) {
-      alert('Subject is required');
-      return;
-    }
-    if (editedTask.subject.length > 255) {
-      alert('Subject must be 255 characters or less');
-      return;
-    }
+  const handleSaveFromModal = (editedTask) => {
     onUpdate(task.id, editedTask);
     setIsEditing(false);
+    setSuccessMessage({ title: 'Task saved', message: 'Your changes have been saved successfully.' });
   };
 
-  const handleCancel = () => {
-    setEditedTask({ ...task });
-    setIsEditing(false);
+  const handleDeleteClick = () => {
+    setShowDeleteConfirm(true);
   };
 
-  const handleDelete = () => {
-    if (window.confirm('Are you sure you want to delete this task?')) {
-      onDelete(task.id);
-    }
+  const handleDeleteConfirm = () => {
+    onDelete(task.id);
+    setShowDeleteConfirm(false);
+    setSuccessMessage({ title: 'Task deleted', message: 'The task has been deleted successfully.' });
   };
-
-  if (isEditing) {
-    return (
-      <div className="bg-white rounded-lg shadow-md p-6 border-2 border-blue-500">
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Subject <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={editedTask.subject || ''}
-              onChange={(e) => setEditedTask({ ...editedTask, subject: e.target.value })}
-              maxLength={255}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Task subject"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              {editedTask.subject?.length || 0}/255 characters
-            </p>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Criteria
-            </label>
-            <textarea
-              value={editedTask.criteria || ''}
-              onChange={(e) => setEditedTask({ ...editedTask, criteria: e.target.value })}
-              rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Task criteria"
-            />
-          </div>
-
-          <ActionItemsEditor
-            items={editedTask.actionItems || []}
-            onChange={(items) => setEditedTask({ ...editedTask, actionItems: items })}
-          />
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Assignee
-            </label>
-            <input
-              type="text"
-              value={editedTask.assignee || ''}
-              onChange={(e) => setEditedTask({ ...editedTask, assignee: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Assignee name (optional)"
-            />
-          </div>
-
-          <PrioritySelector
-            value={editedTask.priority}
-            onChange={(priority) => setEditedTask({ ...editedTask, priority })}
-          />
-
-          <div className="flex gap-2 pt-2">
-            <button
-              onClick={handleSave}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium"
-            >
-              Save
-            </button>
-            <button
-              onClick={handleCancel}
-              className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors font-medium"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
+    <>
+      <TaskFormModal
+        isOpen={isEditing}
+        initialTask={task}
+        title="Edit Task"
+        onSave={handleSaveFromModal}
+        onClose={() => setIsEditing(false)}
+      />
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        title="Delete task?"
+        message="Are you sure you want to delete this task? This action cannot be undone."
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        variant="danger"
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setShowDeleteConfirm(false)}
+      />
+      <MessageDialog
+        isOpen={!!successMessage}
+        variant="success"
+        title={successMessage?.title}
+        message={successMessage?.message}
+        onClose={() => setSuccessMessage(null)}
+      />
     <div className={`bg-white rounded-lg shadow-md p-6 border-2 transition-shadow ${isSelected ? 'border-blue-500' : 'border-gray-200 hover:shadow-lg'}`}>
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-start gap-2 flex-1">
@@ -196,7 +138,7 @@ const TaskCard = ({ task, isSelected = false, exportedInfo = null, onUpdate, onD
         </button>
         {onDelete && (
           <button
-            onClick={handleDelete}
+            onClick={handleDeleteClick}
             className="px-3 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm font-medium"
           >
             Delete
@@ -204,6 +146,7 @@ const TaskCard = ({ task, isSelected = false, exportedInfo = null, onUpdate, onD
         )}
       </div>
     </div>
+    </>
   );
 };
 

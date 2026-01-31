@@ -93,14 +93,14 @@ function App() {
     });
   };
 
-  const addNewTask = () => {
+  const addNewTask = (taskData) => {
     const newTask = {
       id: generateTaskId(),
-      subject: 'New Task',
-      criteria: '',
-      actionItems: [],
-      assignee: '',
-      priority: 'Medium',
+      subject: taskData?.subject ?? 'New Task',
+      criteria: taskData?.criteria ?? '',
+      actionItems: taskData?.actionItems ?? [],
+      assignee: taskData?.assignee ?? '',
+      priority: taskData?.priority ?? 'Medium',
     };
     setTasks(prevTasks => [...prevTasks, newTask]);
   };
