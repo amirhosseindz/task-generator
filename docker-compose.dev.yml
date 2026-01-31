@@ -8,7 +8,7 @@ services:
       target: dev
     container_name: task-generator-backend-dev
     ports:
-      - "5000:5000"
+      - "5001:5000"
     volumes:
       # Mount source code for hot-reload
       - ./backend/src:/app/src
@@ -40,10 +40,9 @@ services:
       - ./frontend/index.html:/app/index.html
       # Exclude node_modules to use container's dependencies
       - /app/node_modules
-    env_file:
-      - ./frontend/.env.development
     environment:
       - NODE_ENV=development
+      - VITE_API_URL=http://localhost:5001
     networks:
       - task-generator-dev
     restart: unless-stopped
