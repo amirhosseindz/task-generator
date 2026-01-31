@@ -14,7 +14,6 @@ A full-stack web application that automatically extracts structured tasks from m
 - **Hot-Reload Development**: Fast development experience with Vite HMR and Nodemon
 - **Docker Support**: Containerized development and production environments
 - **Makefile Commands**: Unified command interface for all operations with environment-specific support
-- **CI/CD Pipeline**: Automated testing and deployment with GitHub Actions
 - **Health Checks**: Built-in health monitoring endpoints
 
 ## Architecture
@@ -22,36 +21,32 @@ A full-stack web application that automatically extracts structured tasks from m
 ```mermaid
 graph TB
     subgraph client[Client Browser]
-        UI[React Frontend<br/>Port 3000]
+        BROWSER[User Browser]
     end
-    
-    subgraph dev[Development Environment]
-        FE_DEV[Frontend Dev Server<br/>Vite HMR]
-        BE_DEV[Backend Dev Server<br/>Nodemon Hot-Reload]
+
+    subgraph dev[Development]
+        FE_DEV[Frontend - Vite<br/>Port 3000]
+        BE_DEV[Backend - Nodemon<br/>Port 5000]
     end
-    
-    subgraph prod[Production Environment]
-        FE_PROD[Frontend Nginx<br/>Port 80]
-        BE_PROD[Backend Express<br/>Port 5000]
+
+    subgraph prod[Production]
+        FE_PROD[Frontend - Nginx<br/>Port 80]
+        BE_PROD[Backend - Express<br/>Port 5000]
     end
-    
+
     subgraph external[External Services]
         OPENAI[OpenAI API]
+        JIRA[Jira / Atlassian]
     end
-    
-    UI -->|HTTP| FE_DEV
-    UI -->|HTTP| FE_PROD
-    FE_DEV -->|API Calls| BE_DEV
-    FE_PROD -->|API Calls| BE_PROD
-    BE_DEV -->|API Calls| OPENAI
-    BE_PROD -->|API Calls| OPENAI
-    
-    subgraph cicd[CI/CD Pipeline]
-        GITHUB[GitHub Actions]
-        GHCR[GitHub Container Registry]
-        GITHUB -->|Build & Push| GHCR
-        GITHUB -->|Deploy| prod
-    end
+
+    BROWSER -->|HTTP| FE_DEV
+    BROWSER -->|HTTP| FE_PROD
+    FE_DEV -->|API| BE_DEV
+    FE_PROD -->|API| BE_PROD
+    BE_DEV --> OPENAI
+    BE_PROD --> OPENAI
+    BE_DEV -->|OAuth / MCP| JIRA
+    BE_PROD -->|OAuth / MCP| JIRA
 ```
 
 ## Prerequisites
@@ -631,32 +626,31 @@ The application supports full task management capabilities after generation:
 
 ### Editing Tasks
 
-- **Edit Mode**: Click the "Edit" button on any task card to enter edit mode
-- **Editable Fields**:
+- **Edit**: Click the "Edit" button on any task card to open a centered modal (popup) with a dimmed backdrop
+- **Editable Fields** (in the modal):
   - **Subject**: Task title (text input, max 255 characters)
   - **Criteria**: Acceptance criteria (textarea)
   - **Action Items**: Dynamic list with add/remove functionality
   - **Assignee**: Person responsible (text input, optional)
   - **Priority**: Dropdown selection (High/Medium/Low)
-- **Save Changes**: Click "Save" to persist changes or "Cancel" to discard
-- **Validation**: All fields are validated before saving
+- **Save / Cancel**: Click "Save" to persist changes or "Cancel" to close the modal
+- **Validation**: Errors (e.g. subject required) are shown in a bottom-right alert; success is shown there after save
 
 ### Adding New Tasks
 
-- Click the "Add New Task" button in the task list
-- Fill in the task details in the new task card
-- Save to add the task to your list
+- Click the "+ Add New Task" button to open the same modal with empty fields
+- Fill in the task details and click "Save" to add the task to your list
+- A success message appears in the bottom-right after adding
 
 ### Deleting Tasks
 
-- **Single Task**: Click the "Delete" button on a task card
-- **Bulk Delete**: Select multiple tasks using checkboxes and click "Delete Selected"
-- Confirm deletion when prompted
+- **Single Task**: Click the "Delete" button on a task card; a confirmation dialog appears (not the browser default). Confirm to delete; a success message appears in the bottom-right
+- **Bulk Delete**: Select multiple tasks using checkboxes and click "Delete Selected"; confirm in the dialog; a success message appears after deletion
 
 ### Task Selection
 
 - Use checkboxes to select individual tasks
-- "Select All" / "Deselect All" buttons for bulk operations
+- "Select All" / "Deselect All" for bulk operations
 - Selected tasks are highlighted for easy identification
 
 ## Jira Export
@@ -995,10 +989,11 @@ npm test
 
 ### Integration Tests
 
-Run integration tests with Docker Compose:
+With the development environment running via Docker Compose, you can run the backend and frontend test suites:
 ```bash
 docker-compose -f docker-compose.dev.yml up -d
-npm run test:integration
+cd backend && npm test
+cd frontend && npm test
 docker-compose -f docker-compose.dev.yml down
 ```
 
@@ -1083,53 +1078,92 @@ docker-compose -f docker-compose.dev.yml down
 
 ```
 task-generator/
-├── backend/                    # Backend application
+├── backend/                       # Backend application
 │   ├── src/
-│   │   ├── config/            # Configuration files
-│   │   ├── controllers/     # Request handlers
+│   │   ├── config/
+│   │   │   └── mcp.config.js       # MCP configuration
+│   │   ├── controllers/
+│   │   │   ├── jira.controller.js
 │   │   │   └── tasks.controller.js
-│   │   ├── services/          # Business logic
-│   │   │   └── openai.service.js
-│   │   ├── routes/            # API routes
+│   │   ├── routes/
+│   │   │   ├── jira.routes.js
 │   │   │   └── tasks.routes.js
-│   │   ├── middleware/        # Express middleware
+│   │   ├── services/
+│   │   │   ├── jira-export.service.js
+│   │   │   ├── jira-mcp-client.service.js
+│   │   │   ├── jira-oauth.service.js
+│   │   │   ├── mcp-credentials.service.js
+│   │   │   └── openai.service.js
+│   │   ├── utils/
+│   │   │   ├── jira.utils.js
+│   │   │   └── mcp-jira.utils.js
+│   │   ├── middleware/
 │   │   │   ├── errorHandler.js
 │   │   │   └── logger.js
-│   │   ├── tests/             # Test files
-│   │   │   ├── tasks.test.js
-│   │   │   └── health.test.js
-│   │   └── index.js           # Application entry point
-│   ├── config/                # Environment configurations
-│   │   ├── dev.env
-│   │   └── prod.env
-│   ├── Dockerfile             # Docker configuration
-│   ├── .dockerignore          # Docker ignore patterns
-│   ├── package.json           # Dependencies and scripts
-│   └── .env.example           # Environment variables template
-├── frontend/                   # Frontend application
+│   │   ├── tests/
+│   │   │   ├── health.test.js
+│   │   │   └── tasks.test.js
+│   │   └── index.js               # Application entry point
+│   ├── Dockerfile
+│   ├── .dockerignore
+│   ├── package.json
+│   ├── .env.example
+│   └── env.example.template
+├── frontend/                       # Frontend application
 │   ├── src/
-│   │   ├── components/        # React components
-│   │   ├── services/          # API service layer
-│   │   ├── tests/             # Test files
-│   │   ├── App.jsx            # Main application component
-│   │   └── main.jsx           # Application entry point
-│   ├── Dockerfile             # Docker configuration
-│   ├── .dockerignore          # Docker ignore patterns
-│   ├── package.json           # Dependencies and scripts
-│   ├── tailwind.config.js     # Tailwind CSS configuration
-│   ├── postcss.config.js      # PostCSS configuration
-│   ├── .env.development       # Development environment variables
-│   ├── .env.production        # Production environment variables
-│   └── .env.example           # Environment variables template
-├── docker-compose.dev.yml     # Development Docker Compose configuration
-├── docker-compose.prod.yml    # Production Docker Compose configuration
-├── docker.env.example         # Docker environment variables template
-├── Makefile                   # Make commands for all operations
+│   │   ├── components/
+│   │   │   ├── jira/               # Jira-related components
+│   │   │   │   ├── ActionItemsEditor.jsx
+│   │   │   │   ├── ExportProgressModal.jsx
+│   │   │   │   ├── JiraConnectionStatus.jsx
+│   │   │   │   ├── JiraExportPanel.jsx
+│   │   │   │   ├── JiraIssueTypeSelector.jsx
+│   │   │   │   ├── JiraOAuthButton.jsx
+│   │   │   │   ├── JiraProjectSelector.jsx
+│   │   │   │   └── PrioritySelector.jsx
+│   │   │   ├── ConfirmDialog.jsx
+│   │   │   ├── MessageDialog.jsx
+│   │   │   ├── TaskFormModal.jsx
+│   │   │   ├── TaskCard.jsx
+│   │   │   ├── TaskList.jsx
+│   │   │   ├── MeetingMinutesInput.jsx
+│   │   │   ├── ErrorMessage.jsx
+│   │   │   └── LoadingSpinner.jsx
+│   │   ├── services/
+│   │   │   ├── api.service.js
+│   │   │   └── jira.service.js
+│   │   ├── tests/
+│   │   ├── App.jsx
+│   │   ├── main.jsx
+│   │   └── index.css
+│   ├── index.html
+│   ├── Dockerfile
+│   ├── .dockerignore
+│   ├── package.json
+│   ├── tailwind.config.js
+│   ├── postcss.config.js
+│   ├── vite.config.js
+│   ├── .eslintrc.cjs
+│   └── .env.example
+├── docs/
+│   ├── API_DOCUMENTATION.md
+│   ├── JIRA_SETUP.md
+│   └── USER_GUIDE.md
 ├── scripts/
-│   └── start.sh               # Unified startup script (used by make)
-├── .gitignore                 # Git ignore patterns
-└── README.md                  # This file
+│   └── start.sh
+├── docker-compose.dev.yml
+├── docker-compose.prod.yml
+├── docker-compose.override.yml.example
+├── docker.env.example
+├── Makefile
+├── .gitignore
+└── README.md
 ```
+
+## Team
+
+- **Masoud Omidvar Rouzbahani** — [LinkedIn](https://www.linkedin.com/in/masoudomidvar/)
+- **Amirhossein Dashtizadeh** — [LinkedIn](https://www.linkedin.com/in/amirhossein-dashtizadeh/)
 
 ## Contributing
 
