@@ -1,10 +1,10 @@
 # Jira Integration Setup Guide
 
-This guide walks you through setting up Jira integration for the Task Generator application, including OAuth 2.1 authentication and MCP server configuration.
+This guide walks you through setting up Jira integration for the Task Generator application, including OAuth 2.1 authentication and direct REST API integration.
 
 ## Overview
 
-The Task Generator uses Atlassian OAuth 2.1 to authenticate with Jira and the Atlassian MCP (Model Context Protocol) server to interact with Jira APIs. This allows you to export tasks directly from the application to your Jira instance.
+The Task Generator uses Atlassian OAuth 2.1 to authenticate with Jira and makes direct REST API calls to interact with Jira. This allows you to export tasks directly from the application to your Jira instance.
 
 ## Prerequisites
 
@@ -63,9 +63,6 @@ SESSION_SECRET=your-session-secret-here
 ### Optional Variables
 
 ```env
-# Jira MCP Server URL (defaults to Atlassian's official server)
-JIRA_MCP_SERVER_URL=https://mcp.atlassian.com/v1/mcp
-
 # Credential Encryption Key (optional, falls back to SESSION_SECRET)
 CREDENTIAL_ENCRYPTION_KEY=your-encryption-key-here
 ```
@@ -164,14 +161,15 @@ For production deployments, update the following:
 - Verify the OAuth app has the correct scopes (`read:jira-work`)
 - Check that you authorized the correct Jira site during OAuth flow
 
-### MCP Server Connection Issues
+### API Connection Issues
 
-**Problem**: "MCP server connection failed" error
+**Problem**: "Failed to create Jira issue" or API errors
 
 **Solution**:
-- Verify `JIRA_MCP_SERVER_URL` is correct (default: `https://mcp.atlassian.com/v1/mcp`)
-- Check network connectivity to the MCP server
-- Ensure OAuth access token is valid (try reconnecting)
+- Verify OAuth access token is valid (try reconnecting)
+- Check that the OAuth app has the required scopes (`write:jira-work`)
+- Ensure you have permission to create issues in the selected project
+- Check network connectivity to Jira API
 
 ### Session Issues
 
@@ -215,7 +213,6 @@ For production deployments, update the following:
 
 - [Atlassian OAuth 2.1 Documentation](https://developer.atlassian.com/cloud/jira/platform/oauth-2-3lo-apps/)
 - [Atlassian REST API Documentation](https://developer.atlassian.com/cloud/jira/platform/rest/v3/)
-- [MCP (Model Context Protocol) Documentation](https://modelcontextprotocol.io/)
 
 ## Support
 

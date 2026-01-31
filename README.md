@@ -595,9 +595,6 @@ VITE_API_URL=https://api.your-domain.com
 For Jira integration functionality, additional environment variables need to be configured in your backend environment files (`backend/.env.development` or `backend/.env.production`):
 
 ```env
-# Jira MCP Server URL (optional, defaults to Atlassian's official server)
-JIRA_MCP_SERVER_URL=https://mcp.atlassian.com/v1/mcp
-
 # Atlassian OAuth Configuration (required for Jira export)
 ATLASSIAN_CLIENT_ID=your-client-id-here
 ATLASSIAN_CLIENT_SECRET=your-client-secret-here
@@ -655,7 +652,7 @@ The application supports full task management capabilities after generation:
 
 ## Jira Export
 
-Export your tasks directly to Jira with OAuth 2.1 authentication and MCP integration.
+Export your tasks directly to Jira with OAuth 2.1 authentication and direct REST API integration.
 
 ### Prerequisites
 

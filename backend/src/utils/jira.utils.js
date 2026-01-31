@@ -109,3 +109,133 @@ export function extractIssueKeyFromUrl(url) {
 export function generateOAuthState() {
   return crypto.randomBytes(32).toString('hex');
 }
+
+/**
+ * Convert task object to Jira issue format
+ * @param {Object} task - Task object with subject, criteria, actionItems, assignee, priority
+ * @param {string} projectKey - Jira project key
+ * @param {string} issueType - Jira issue type
+ * @param {string|null} assigneeAccountId - Jira account ID for assignee (optional)
+ * @returns {Object} Jira issue data
+ */
+export function convertTaskToJiraIssue(task, projectKey, issueType, assigneeAccountId = null) {
+  const issue = {
+    fields: {
+      project: {
+        key: projectKey,
+      },
+      summary: task.subject || 'Untitled Task',
+      issuetype: {
+        name: issueType,
+      },
+      description: formatDescriptionAsADF(task.criteria, task.actionItems),
+    },
+  };
+
+  // Map priority
+  if (task.priority) {
+    const priorityMap = {
+      high: 'Highest',
+      medium: 'Medium',
+      low: 'Low',
+    };
+    issue.fields.priority = {
+      name: priorityMap[task.priority.toLowerCase()] || 'Medium',
+    };
+  }
+
+  // Add assignee if provided
+  if (assigneeAccountId) {
+    issue.fields.assignee = {
+      accountId: assigneeAccountId,
+    };
+  }
+
+  return issue;
+}
+
+/**
+ * Format description as Atlassian Document Format (ADF)
+ * @param {string} criteria - Acceptance criteria
+ * @param {Array<string>} actionItems - Action items array
+ * @returns {Object} ADF document structure
+ */
+export function formatDescriptionAsADF(criteria, actionItems = []) {
+  const content = [];
+
+  // Add criteria section
+  if (criteria) {
+    content.push({
+      type: 'paragraph',
+      content: [
+        {
+          type: 'text',
+          text: 'Acceptance Criteria:',
+          marks: [{ type: 'strong' }],
+        },
+      ],
+    });
+    content.push({
+      type: 'paragraph',
+      content: [
+        {
+          type: 'text',
+          text: criteria,
+        },
+      ],
+    });
+  }
+
+  // Add action items section
+  if (actionItems && actionItems.length > 0) {
+    content.push({
+      type: 'paragraph',
+      content: [
+        {
+          type: 'text',
+          text: 'Action Items:',
+          marks: [{ type: 'strong' }],
+        },
+      ],
+    });
+
+    const listItems = actionItems.map((item) => ({
+      type: 'listItem',
+      content: [
+        {
+          type: 'paragraph',
+          content: [
+            {
+              type: 'text',
+              text: item,
+            },
+          ],
+        },
+      ],
+    }));
+
+    content.push({
+      type: 'bulletList',
+      content: listItems,
+    });
+  }
+
+  // If no content, add a default paragraph
+  if (content.length === 0) {
+    content.push({
+      type: 'paragraph',
+      content: [
+        {
+          type: 'text',
+          text: 'Task created from meeting minutes',
+        },
+      ],
+    });
+  }
+
+  return {
+    version: 1,
+    type: 'doc',
+    content,
+  };
+}

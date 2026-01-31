@@ -422,7 +422,7 @@ curl http://localhost:5000/api/jira/issue-types/PROJ
 
 **POST** `/api/jira/export`
 
-Exports tasks to Jira by creating issues using OpenAI with MCP tools.
+Exports tasks to Jira by creating issues using direct Jira REST API calls.
 
 **Request Headers:**
 ```
@@ -483,6 +483,11 @@ Content-Type: application/json
       "url": "https://your-domain.atlassian.net/browse/PROJ-124",
       "success": true
     }
+  },
+  "summary": {
+    "total": 2,
+    "successful": 2,
+    "failed": 0
   }
 }
 ```

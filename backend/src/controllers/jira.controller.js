@@ -1,6 +1,6 @@
 import { validationResult } from 'express-validator';
 import jiraOAuthService from '../services/jira-oauth.service.js';
-import jiraMCPClientService from '../services/jira-mcp-client.service.js';
+import jiraApiClient from '../services/jira-api-client.service.js';
 import jiraExportService from '../services/jira-export.service.js';
 import { generateOAuthState } from '../utils/jira.utils.js';
 
@@ -42,7 +42,9 @@ export const handleOAuthCallback = async (req, res, next) => {
       });
     }
 
-    const { code, state } = req.body;
+    // Extract code and state from either body (POST) or query (GET)
+    const code = req.body?.code || req.query?.code;
+    const state = req.body?.state || req.query?.state;
 
     // Verify state parameter for CSRF protection
     if (!req.session.oauthState || req.session.oauthState !== state) {
@@ -62,11 +64,65 @@ export const handleOAuthCallback = async (req, res, next) => {
     // Store tokens in session (encrypted)
     jiraOAuthService.storeTokens(req.session, tokens);
 
+    // For GET requests (browser redirects), return HTML page that posts message to parent
+    if (req.method === 'GET') {
+      return res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Jira OAuth Success</title>
+        </head>
+        <body>
+          <script>
+            // Post success message to parent window (if in popup)
+            if (window.opener) {
+              window.opener.postMessage({
+                type: 'JIRA_OAUTH_SUCCESS'
+              }, window.location.origin);
+              window.close();
+            } else {
+              // If not in popup, redirect to frontend
+              window.location.href = '${process.env.CORS_ORIGIN || 'http://localhost:3000'}';
+            }
+          </script>
+          <p>Authentication successful! You can close this window.</p>
+        </body>
+        </html>
+      `);
+    }
+
+    // For POST requests (programmatic), return JSON
     res.json({
       success: true,
       message: 'OAuth authentication successful',
     });
   } catch (error) {
+    // For GET requests, return error page
+    if (req.method === 'GET') {
+      const errorMessage = (error.message || 'Unknown error').replace(/'/g, "\\'").replace(/"/g, '\\"');
+      return res.status(400).send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Jira OAuth Error</title>
+        </head>
+        <body>
+          <script>
+            // Post error message to parent window (if in popup)
+            if (window.opener) {
+              window.opener.postMessage({
+                type: 'JIRA_OAUTH_ERROR',
+                error: '${errorMessage}'
+              }, window.location.origin);
+              window.close();
+            }
+          </script>
+          <p>Authentication failed: ${errorMessage}</p>
+        </body>
+        </html>
+      `);
+    }
+    
     next(error);
   }
 };
@@ -123,7 +179,7 @@ export const getProjects = async (req, res, next) => {
       });
     }
 
-    const projects = await jiraMCPClientService.getProjects(accessToken);
+    const projects = await jiraApiClient.getProjects(accessToken);
 
     res.json({
       projects: projects,
@@ -162,7 +218,7 @@ export const getIssueTypes = async (req, res, next) => {
       });
     }
 
-    const issueTypes = await jiraMCPClientService.getIssueTypes(projectKey, accessToken);
+    const issueTypes = await jiraApiClient.getIssueTypes(projectKey, accessToken);
 
     res.json({
       issueTypes: issueTypes,
@@ -202,7 +258,7 @@ export const exportTasks = async (req, res, next) => {
     }
 
     // Export tasks to Jira
-    const results = await jiraExportService.exportTasksToJira(
+    const exportResult = await jiraExportService.exportTasksToJira(
       tasks,
       projectKey,
       issueType,
@@ -211,7 +267,8 @@ export const exportTasks = async (req, res, next) => {
 
     res.json({
       success: true,
-      results: results.results || {},
+      results: exportResult.results || {},
+      summary: exportResult.summary,
       message: 'Tasks exported successfully',
     });
   } catch (error) {

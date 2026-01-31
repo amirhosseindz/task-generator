@@ -1,5 +1,5 @@
 import express from 'express';
-import { body, param } from 'express-validator';
+import { body, param, query } from 'express-validator';
 import {
   initiateOAuth,
   handleOAuthCallback,
@@ -20,7 +20,7 @@ router.get('/oauth/authorize', initiateOAuth);
 
 /**
  * POST /api/jira/oauth/callback
- * Handle OAuth callback, exchange code for tokens
+ * Handle OAuth callback, exchange code for tokens (for programmatic calls)
  */
 router.post(
   '/oauth/callback',
@@ -30,6 +30,25 @@ router.post(
       .notEmpty()
       .withMessage('Authorization code is required'),
     body('state')
+      .trim()
+      .notEmpty()
+      .withMessage('State parameter is required'),
+  ],
+  handleOAuthCallback
+);
+
+/**
+ * GET /api/jira/oauth/callback
+ * Handle OAuth callback, exchange code for tokens (for browser redirects from Jira)
+ */
+router.get(
+  '/oauth/callback',
+  [
+    query('code')
+      .trim()
+      .notEmpty()
+      .withMessage('Authorization code is required'),
+    query('state')
       .trim()
       .notEmpty()
       .withMessage('State parameter is required'),
@@ -51,13 +70,13 @@ router.delete('/config', clearConfig);
 
 /**
  * GET /api/jira/projects
- * List available Jira projects (via MCP server)
+ * List available Jira projects (via Jira REST API)
  */
 router.get('/projects', getProjects);
 
 /**
  * GET /api/jira/issue-types/:projectKey
- * Get issue types for project (via MCP server)
+ * Get issue types for project (via Jira REST API)
  */
 router.get(
   '/issue-types/:projectKey',
@@ -74,7 +93,7 @@ router.get(
 
 /**
  * POST /api/jira/export
- * Export tasks to Jira via OpenAI MCP
+ * Export tasks to Jira via Jira REST API
  */
 router.post(
   '/export',

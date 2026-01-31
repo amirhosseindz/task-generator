@@ -178,6 +178,129 @@ else
     echo "✅ OpenAI Model already configured in $BACKEND_ENV_FILE: $CURRENT_MODEL (skipping prompt)"
 fi
 
+# Check and prompt for Jira OAuth configuration if not already set
+# Note: All Jira environment variables will be written to $BACKEND_ENV_FILE
+# which is set based on the environment (backend/.env.development for dev, backend/.env.production for prod)
+echo ""
+echo "🔐 Jira OAuth Configuration (optional - skip if not using Jira integration)"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "   Configuring: $BACKEND_ENV_FILE"
+
+# Check ATLASSIAN_CLIENT_ID
+CURRENT_CLIENT_ID=$(grep "^ATLASSIAN_CLIENT_ID=" "$BACKEND_ENV_FILE" | cut -d '=' -f2- | tr -d '"' || echo "")
+if [ -z "$CURRENT_CLIENT_ID" ] || [ "$CURRENT_CLIENT_ID" = "your-atlassian-client-id" ]; then
+    read -p "Enter Atlassian Client ID (or press Enter to skip): " ATLASSIAN_CLIENT_ID
+    if [ -n "$ATLASSIAN_CLIENT_ID" ]; then
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            sed -i.bak "s|^ATLASSIAN_CLIENT_ID=.*|ATLASSIAN_CLIENT_ID=$ATLASSIAN_CLIENT_ID|" "$BACKEND_ENV_FILE"
+            rm -f "${BACKEND_ENV_FILE}.bak"
+        else
+            sed -i "s|^ATLASSIAN_CLIENT_ID=.*|ATLASSIAN_CLIENT_ID=$ATLASSIAN_CLIENT_ID|" "$BACKEND_ENV_FILE"
+        fi
+        echo "✅ Atlassian Client ID configured"
+    fi
+else
+    echo "✅ Atlassian Client ID already configured (skipping prompt)"
+fi
+
+# Check ATLASSIAN_CLIENT_SECRET
+CURRENT_CLIENT_SECRET=$(grep "^ATLASSIAN_CLIENT_SECRET=" "$BACKEND_ENV_FILE" | cut -d '=' -f2- | tr -d '"' || echo "")
+if [ -z "$CURRENT_CLIENT_SECRET" ] || [ "$CURRENT_CLIENT_SECRET" = "your-atlassian-client-secret" ]; then
+    read -p "Enter Atlassian Client Secret (or press Enter to skip): " ATLASSIAN_CLIENT_SECRET
+    if [ -n "$ATLASSIAN_CLIENT_SECRET" ]; then
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            sed -i.bak "s|^ATLASSIAN_CLIENT_SECRET=.*|ATLASSIAN_CLIENT_SECRET=$ATLASSIAN_CLIENT_SECRET|" "$BACKEND_ENV_FILE"
+            rm -f "${BACKEND_ENV_FILE}.bak"
+        else
+            sed -i "s|^ATLASSIAN_CLIENT_SECRET=.*|ATLASSIAN_CLIENT_SECRET=$ATLASSIAN_CLIENT_SECRET|" "$BACKEND_ENV_FILE"
+        fi
+        echo "✅ Atlassian Client Secret configured"
+    fi
+else
+    echo "✅ Atlassian Client Secret already configured (skipping prompt)"
+fi
+
+# Check OAUTH_REDIRECT_URI
+CURRENT_REDIRECT_URI=$(grep "^OAUTH_REDIRECT_URI=" "$BACKEND_ENV_FILE" | cut -d '=' -f2- | tr -d '"' || echo "")
+if [ -z "$CURRENT_REDIRECT_URI" ] || [ "$CURRENT_REDIRECT_URI" = "http://localhost:5000/api/jira/oauth/callback" ]; then
+    if [ "$ENV" = "prod" ]; then
+        read -p "Enter OAuth Redirect URI [default: http://localhost:5000/api/jira/oauth/callback]: " OAUTH_REDIRECT_URI
+        OAUTH_REDIRECT_URI=${OAUTH_REDIRECT_URI:-http://localhost:5000/api/jira/oauth/callback}
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            sed -i.bak "s|^OAUTH_REDIRECT_URI=.*|OAUTH_REDIRECT_URI=$OAUTH_REDIRECT_URI|" "$BACKEND_ENV_FILE"
+            rm -f "${BACKEND_ENV_FILE}.bak"
+        else
+            sed -i "s|^OAUTH_REDIRECT_URI=.*|OAUTH_REDIRECT_URI=$OAUTH_REDIRECT_URI|" "$BACKEND_ENV_FILE"
+        fi
+        echo "✅ OAuth Redirect URI configured: $OAUTH_REDIRECT_URI"
+    else
+        echo "✅ OAuth Redirect URI using default for development (skipping prompt)"
+    fi
+else
+    echo "✅ OAuth Redirect URI already configured: $CURRENT_REDIRECT_URI (skipping prompt)"
+fi
+
+# Check SESSION_SECRET
+CURRENT_SESSION_SECRET=$(grep "^SESSION_SECRET=" "$BACKEND_ENV_FILE" | cut -d '=' -f2- | tr -d '"' || echo "")
+if [ -z "$CURRENT_SESSION_SECRET" ] || [ "$CURRENT_SESSION_SECRET" = "your-session-secret-key-change-in-production" ]; then
+    echo ""
+    read -p "Enter Session Secret (or press Enter to generate one): " SESSION_SECRET
+    if [ -z "$SESSION_SECRET" ]; then
+        # Generate a random session secret
+        if command -v openssl &> /dev/null; then
+            SESSION_SECRET=$(openssl rand -hex 32)
+        elif command -v node &> /dev/null; then
+            SESSION_SECRET=$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
+        else
+            # Fallback to a simple random string
+            SESSION_SECRET=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 64 | head -n 1)
+        fi
+        echo "   Generated Session Secret"
+    fi
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        sed -i.bak "s|^SESSION_SECRET=.*|SESSION_SECRET=$SESSION_SECRET|" "$BACKEND_ENV_FILE"
+        rm -f "${BACKEND_ENV_FILE}.bak"
+    else
+        sed -i "s|^SESSION_SECRET=.*|SESSION_SECRET=$SESSION_SECRET|" "$BACKEND_ENV_FILE"
+    fi
+    echo "✅ Session Secret configured"
+else
+    echo "✅ Session Secret already configured (skipping prompt)"
+fi
+
+# Check CREDENTIAL_ENCRYPTION_KEY
+CURRENT_ENCRYPTION_KEY=$(grep "^CREDENTIAL_ENCRYPTION_KEY=" "$BACKEND_ENV_FILE" | cut -d '=' -f2- | tr -d '"' || echo "")
+if [ -z "$CURRENT_ENCRYPTION_KEY" ] || [ "$CURRENT_ENCRYPTION_KEY" = "your-encryption-key-change-in-production" ]; then
+    read -p "Enter Credential Encryption Key (or press Enter to use Session Secret): " CREDENTIAL_ENCRYPTION_KEY
+    if [ -z "$CREDENTIAL_ENCRYPTION_KEY" ]; then
+        # Get SESSION_SECRET from file (it was just set or already exists)
+        CURRENT_SESSION_SECRET=$(grep "^SESSION_SECRET=" "$BACKEND_ENV_FILE" | cut -d '=' -f2- | tr -d '"' || echo "")
+        if [ -n "$CURRENT_SESSION_SECRET" ] && [ "$CURRENT_SESSION_SECRET" != "your-session-secret-key-change-in-production" ]; then
+            CREDENTIAL_ENCRYPTION_KEY="$CURRENT_SESSION_SECRET"
+            echo "   Using Session Secret for Credential Encryption Key"
+        else
+            # Generate a new encryption key
+            if command -v openssl &> /dev/null; then
+                CREDENTIAL_ENCRYPTION_KEY=$(openssl rand -hex 32)
+            elif command -v node &> /dev/null; then
+                CREDENTIAL_ENCRYPTION_KEY=$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
+            else
+                CREDENTIAL_ENCRYPTION_KEY=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 64 | head -n 1)
+            fi
+            echo "   Generated Credential Encryption Key"
+        fi
+    fi
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        sed -i.bak "s|^CREDENTIAL_ENCRYPTION_KEY=.*|CREDENTIAL_ENCRYPTION_KEY=$CREDENTIAL_ENCRYPTION_KEY|" "$BACKEND_ENV_FILE"
+        rm -f "${BACKEND_ENV_FILE}.bak"
+    else
+        sed -i "s|^CREDENTIAL_ENCRYPTION_KEY=.*|CREDENTIAL_ENCRYPTION_KEY=$CREDENTIAL_ENCRYPTION_KEY|" "$BACKEND_ENV_FILE"
+    fi
+    echo "✅ Credential Encryption Key configured"
+else
+    echo "✅ Credential Encryption Key already configured (skipping prompt)"
+fi
+
 echo ""
 echo "✅ Environment configuration complete!"
 echo ""
