@@ -178,6 +178,35 @@ else
     echo "✅ OpenAI Model already configured in $BACKEND_ENV_FILE: $CURRENT_MODEL (skipping prompt)"
 fi
 
+# Setup docker.env file if it doesn't exist (needed for BACKEND_PORT in OAUTH_REDIRECT_URI)
+if [ ! -f "docker.env" ]; then
+    echo "📝 Creating docker.env from docker.env.example..."
+    if [ -f "docker.env.example" ]; then
+        cp docker.env.example docker.env
+        echo "✅ Created docker.env (you can customize BACKEND_PORT and FRONTEND_PORT if needed)"
+    else
+        echo "⚠️  docker.env.example not found, creating basic docker.env..."
+        cat > docker.env << 'EOF'
+# Docker Compose Environment Variables
+BACKEND_PORT=5000
+FRONTEND_PORT=3000
+FRONTEND_PORT_PROD=80
+EOF
+        echo "✅ Created docker.env with default port 5000"
+    fi
+    echo ""
+else
+    echo "✅ docker.env already exists"
+    echo ""
+fi
+
+# Load docker.env file to make BACKEND_PORT available for OAUTH_REDIRECT_URI
+if [ -f "docker.env" ]; then
+    set -a  # Automatically export all variables
+    source docker.env
+    set +a  # Turn off automatic export
+fi
+
 # Helper function to set or update an environment variable in the env file
 # Usage: set_env_var "VAR_NAME" "value" "$BACKEND_ENV_FILE"
 set_env_var() {
@@ -234,18 +263,22 @@ fi
 
 # Check OAUTH_REDIRECT_URI
 CURRENT_REDIRECT_URI=$(grep "^OAUTH_REDIRECT_URI=" "$BACKEND_ENV_FILE" | cut -d '=' -f2- | tr -d '"' || echo "")
-if [ -z "$CURRENT_REDIRECT_URI" ] || [ "$CURRENT_REDIRECT_URI" = "http://localhost:5000/api/jira/oauth/callback" ]; then
+# Get BACKEND_PORT from docker.env (default to 5000 if not set)
+BACKEND_PORT_FOR_OAUTH=${BACKEND_PORT:-5000}
+DEFAULT_OAUTH_REDIRECT_URI="http://localhost:${BACKEND_PORT_FOR_OAUTH}/api/jira/oauth/callback"
+
+if [ -z "$CURRENT_REDIRECT_URI" ] || [ "$CURRENT_REDIRECT_URI" = "http://localhost:5000/api/jira/oauth/callback" ] || [ "$CURRENT_REDIRECT_URI" = "$DEFAULT_OAUTH_REDIRECT_URI" ]; then
     if [ "$ENV" = "prod" ]; then
-        read -p "Enter OAuth Redirect URI [default: http://localhost:5000/api/jira/oauth/callback]: " OAUTH_REDIRECT_URI
-        OAUTH_REDIRECT_URI=${OAUTH_REDIRECT_URI:-http://localhost:5000/api/jira/oauth/callback}
+        read -p "Enter OAuth Redirect URI [default: $DEFAULT_OAUTH_REDIRECT_URI]: " OAUTH_REDIRECT_URI
+        OAUTH_REDIRECT_URI=${OAUTH_REDIRECT_URI:-$DEFAULT_OAUTH_REDIRECT_URI}
         set_env_var "OAUTH_REDIRECT_URI" "$OAUTH_REDIRECT_URI" "$BACKEND_ENV_FILE"
         echo "✅ OAuth Redirect URI configured: $OAUTH_REDIRECT_URI"
     else
         # For development, set default value if not present
         if [ -z "$CURRENT_REDIRECT_URI" ]; then
-            set_env_var "OAUTH_REDIRECT_URI" "http://localhost:5000/api/jira/oauth/callback" "$BACKEND_ENV_FILE"
+            set_env_var "OAUTH_REDIRECT_URI" "$DEFAULT_OAUTH_REDIRECT_URI" "$BACKEND_ENV_FILE"
         fi
-        echo "✅ OAuth Redirect URI using default for development (skipping prompt)"
+        echo "✅ OAuth Redirect URI using default for development: $DEFAULT_OAUTH_REDIRECT_URI (skipping prompt)"
     fi
 else
     echo "✅ OAuth Redirect URI already configured: $CURRENT_REDIRECT_URI (skipping prompt)"
@@ -306,29 +339,8 @@ echo ""
 echo "✅ Environment configuration complete!"
 echo ""
 
-# Setup docker.env file if it doesn't exist
-if [ ! -f "docker.env" ]; then
-    echo "📝 Creating docker.env from docker.env.example..."
-    if [ -f "docker.env.example" ]; then
-        cp docker.env.example docker.env
-        echo "✅ Created docker.env (you can customize BACKEND_PORT and FRONTEND_PORT if needed)"
-    else
-        echo "⚠️  docker.env.example not found, creating basic docker.env..."
-        cat > docker.env << 'EOF'
-# Docker Compose Environment Variables
-BACKEND_PORT=5000
-FRONTEND_PORT=3000
-FRONTEND_PORT_PROD=80
-EOF
-        echo "✅ Created docker.env with default port 5000"
-    fi
-    echo ""
-else
-    echo "✅ docker.env already exists"
-    echo ""
-fi
-
-# Load docker.env file to make BACKEND_PORT available to docker-compose
+# Reload docker.env file to ensure BACKEND_PORT is available for docker-compose
+# (It was already loaded earlier for OAUTH_REDIRECT_URI, but reload to be safe)
 if [ -f "docker.env" ]; then
     set -a  # Automatically export all variables
     source docker.env
