@@ -178,6 +178,28 @@ else
     echo "✅ OpenAI Model already configured in $BACKEND_ENV_FILE: $CURRENT_MODEL (skipping prompt)"
 fi
 
+# Helper function to set or update an environment variable in the env file
+# Usage: set_env_var "VAR_NAME" "value" "$BACKEND_ENV_FILE"
+set_env_var() {
+    local var_name=$1
+    local var_value=$2
+    local env_file=$3
+    
+    # Check if variable exists in file
+    if grep -q "^${var_name}=" "$env_file" 2>/dev/null; then
+        # Variable exists, replace it
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            sed -i.bak "s|^${var_name}=.*|${var_name}=${var_value}|" "$env_file"
+            rm -f "${env_file}.bak"
+        else
+            sed -i "s|^${var_name}=.*|${var_name}=${var_value}|" "$env_file"
+        fi
+    else
+        # Variable doesn't exist, append it
+        echo "${var_name}=${var_value}" >> "$env_file"
+    fi
+}
+
 # Check and prompt for Jira OAuth configuration if not already set
 # Note: All Jira environment variables will be written to $BACKEND_ENV_FILE
 # which is set based on the environment (backend/.env.development for dev, backend/.env.production for prod)
@@ -191,12 +213,7 @@ CURRENT_CLIENT_ID=$(grep "^ATLASSIAN_CLIENT_ID=" "$BACKEND_ENV_FILE" | cut -d '=
 if [ -z "$CURRENT_CLIENT_ID" ] || [ "$CURRENT_CLIENT_ID" = "your-atlassian-client-id" ]; then
     read -p "Enter Atlassian Client ID (or press Enter to skip): " ATLASSIAN_CLIENT_ID
     if [ -n "$ATLASSIAN_CLIENT_ID" ]; then
-        if [[ "$OSTYPE" == "darwin"* ]]; then
-            sed -i.bak "s|^ATLASSIAN_CLIENT_ID=.*|ATLASSIAN_CLIENT_ID=$ATLASSIAN_CLIENT_ID|" "$BACKEND_ENV_FILE"
-            rm -f "${BACKEND_ENV_FILE}.bak"
-        else
-            sed -i "s|^ATLASSIAN_CLIENT_ID=.*|ATLASSIAN_CLIENT_ID=$ATLASSIAN_CLIENT_ID|" "$BACKEND_ENV_FILE"
-        fi
+        set_env_var "ATLASSIAN_CLIENT_ID" "$ATLASSIAN_CLIENT_ID" "$BACKEND_ENV_FILE"
         echo "✅ Atlassian Client ID configured"
     fi
 else
@@ -208,12 +225,7 @@ CURRENT_CLIENT_SECRET=$(grep "^ATLASSIAN_CLIENT_SECRET=" "$BACKEND_ENV_FILE" | c
 if [ -z "$CURRENT_CLIENT_SECRET" ] || [ "$CURRENT_CLIENT_SECRET" = "your-atlassian-client-secret" ]; then
     read -p "Enter Atlassian Client Secret (or press Enter to skip): " ATLASSIAN_CLIENT_SECRET
     if [ -n "$ATLASSIAN_CLIENT_SECRET" ]; then
-        if [[ "$OSTYPE" == "darwin"* ]]; then
-            sed -i.bak "s|^ATLASSIAN_CLIENT_SECRET=.*|ATLASSIAN_CLIENT_SECRET=$ATLASSIAN_CLIENT_SECRET|" "$BACKEND_ENV_FILE"
-            rm -f "${BACKEND_ENV_FILE}.bak"
-        else
-            sed -i "s|^ATLASSIAN_CLIENT_SECRET=.*|ATLASSIAN_CLIENT_SECRET=$ATLASSIAN_CLIENT_SECRET|" "$BACKEND_ENV_FILE"
-        fi
+        set_env_var "ATLASSIAN_CLIENT_SECRET" "$ATLASSIAN_CLIENT_SECRET" "$BACKEND_ENV_FILE"
         echo "✅ Atlassian Client Secret configured"
     fi
 else
@@ -226,14 +238,13 @@ if [ -z "$CURRENT_REDIRECT_URI" ] || [ "$CURRENT_REDIRECT_URI" = "http://localho
     if [ "$ENV" = "prod" ]; then
         read -p "Enter OAuth Redirect URI [default: http://localhost:5000/api/jira/oauth/callback]: " OAUTH_REDIRECT_URI
         OAUTH_REDIRECT_URI=${OAUTH_REDIRECT_URI:-http://localhost:5000/api/jira/oauth/callback}
-        if [[ "$OSTYPE" == "darwin"* ]]; then
-            sed -i.bak "s|^OAUTH_REDIRECT_URI=.*|OAUTH_REDIRECT_URI=$OAUTH_REDIRECT_URI|" "$BACKEND_ENV_FILE"
-            rm -f "${BACKEND_ENV_FILE}.bak"
-        else
-            sed -i "s|^OAUTH_REDIRECT_URI=.*|OAUTH_REDIRECT_URI=$OAUTH_REDIRECT_URI|" "$BACKEND_ENV_FILE"
-        fi
+        set_env_var "OAUTH_REDIRECT_URI" "$OAUTH_REDIRECT_URI" "$BACKEND_ENV_FILE"
         echo "✅ OAuth Redirect URI configured: $OAUTH_REDIRECT_URI"
     else
+        # For development, set default value if not present
+        if [ -z "$CURRENT_REDIRECT_URI" ]; then
+            set_env_var "OAUTH_REDIRECT_URI" "http://localhost:5000/api/jira/oauth/callback" "$BACKEND_ENV_FILE"
+        fi
         echo "✅ OAuth Redirect URI using default for development (skipping prompt)"
     fi
 else
@@ -257,12 +268,7 @@ if [ -z "$CURRENT_SESSION_SECRET" ] || [ "$CURRENT_SESSION_SECRET" = "your-sessi
         fi
         echo "   Generated Session Secret"
     fi
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        sed -i.bak "s|^SESSION_SECRET=.*|SESSION_SECRET=$SESSION_SECRET|" "$BACKEND_ENV_FILE"
-        rm -f "${BACKEND_ENV_FILE}.bak"
-    else
-        sed -i "s|^SESSION_SECRET=.*|SESSION_SECRET=$SESSION_SECRET|" "$BACKEND_ENV_FILE"
-    fi
+    set_env_var "SESSION_SECRET" "$SESSION_SECRET" "$BACKEND_ENV_FILE"
     echo "✅ Session Secret configured"
 else
     echo "✅ Session Secret already configured (skipping prompt)"
@@ -290,12 +296,7 @@ if [ -z "$CURRENT_ENCRYPTION_KEY" ] || [ "$CURRENT_ENCRYPTION_KEY" = "your-encry
             echo "   Generated Credential Encryption Key"
         fi
     fi
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        sed -i.bak "s|^CREDENTIAL_ENCRYPTION_KEY=.*|CREDENTIAL_ENCRYPTION_KEY=$CREDENTIAL_ENCRYPTION_KEY|" "$BACKEND_ENV_FILE"
-        rm -f "${BACKEND_ENV_FILE}.bak"
-    else
-        sed -i "s|^CREDENTIAL_ENCRYPTION_KEY=.*|CREDENTIAL_ENCRYPTION_KEY=$CREDENTIAL_ENCRYPTION_KEY|" "$BACKEND_ENV_FILE"
-    fi
+    set_env_var "CREDENTIAL_ENCRYPTION_KEY" "$CREDENTIAL_ENCRYPTION_KEY" "$BACKEND_ENV_FILE"
     echo "✅ Credential Encryption Key configured"
 else
     echo "✅ Credential Encryption Key already configured (skipping prompt)"
