@@ -55,9 +55,6 @@ For each task identified, provide:
 
 Do not include any markdown formatting, code blocks, or additional text. Only return the JSON object.`;
 
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/bae9a160-b71d-481f-8ab8-0f7e4f312bd8',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'openai.service.js:extractTasks:entry',message:'OpenAI extractTasks called',data:{meetingMinutesLen:meetingMinutes?.length},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'C'})}).catch(()=>{});
-    // #endregion
     try {
       const response = await this.client.chat.completions.create({
         model: this.model,
@@ -92,9 +89,6 @@ Do not include any markdown formatting, code blocks, or additional text. Only re
 
       return parsed;
     } catch (error) {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/bae9a160-b71d-481f-8ab8-0f7e4f312bd8',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'openai.service.js:catch',message:'OpenAI error',data:{errMsg:error?.message,responseStatus:error?.response?.status,hasResponse:!!error?.response},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,C'})}).catch(()=>{});
-      // #endregion
       if (error instanceof SyntaxError) {
         throw new Error('Failed to parse OpenAI response as JSON');
       }
