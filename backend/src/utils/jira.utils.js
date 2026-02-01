@@ -119,15 +119,20 @@ export function generateOAuthState() {
  * @returns {Object} Jira issue data
  */
 export function convertTaskToJiraIssue(task, projectKey, issueType, assigneeAccountId = null) {
+  // Determine if issueType is an ID (numeric string) or a name
+  // Jira API requires: { id: "..." } for IDs, { name: "..." } for names
+  const isNumericId = /^\d+$/.test(String(issueType));
+  const issuetypeField = isNumericId 
+    ? { id: issueType }
+    : { name: issueType };
+  
   const issue = {
     fields: {
       project: {
         key: projectKey,
       },
       summary: task.subject || 'Untitled Task',
-      issuetype: {
-        name: issueType,
-      },
+      issuetype: issuetypeField,
       description: formatDescriptionAsADF(task.criteria, task.actionItems),
     },
   };

@@ -65,7 +65,7 @@ export const clearConfig = async () => {
 export const getProjects = async () => {
   try {
     const response = await apiClient.get('/api/jira/projects');
-    return response.data;
+    return response.data?.projects || [];
   } catch (error) {
     throw error;
   }
@@ -79,7 +79,7 @@ export const getProjects = async () => {
 export const getIssueTypes = async (projectKey) => {
   try {
     const response = await apiClient.get(`/api/jira/issue-types/${projectKey}`);
-    return response.data;
+    return response.data?.issueTypes || [];
   } catch (error) {
     throw error;
   }
