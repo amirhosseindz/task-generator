@@ -1,0 +1,23 @@
+<svg width="32" height="32" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <!-- Left diagonal blocks (pixelated effect) -->
+  <rect x="5" y="35" width="8" height="8" fill="#2563eb" opacity="0.3"/>
+  <rect x="12" y="30" width="8" height="8" fill="#2563eb" opacity="0.5"/>
+  <rect x="19" y="25" width="8" height="8" fill="#2563eb" opacity="0.7"/>
+  <rect x="26" y="20" width="8" height="8" fill="#2563eb" opacity="0.9"/>
+  
+  <!-- Main "T" shape - vertical bar -->
+  <rect x="40" y="20" width="16" height="50" fill="#2563eb"/>
+  
+  <!-- Main "T" shape - horizontal bar -->
+  <rect x="30" y="20" width="36" height="16" fill="#2563eb"/>
+  
+  <!-- Additional blocks for "T" structure -->
+  <rect x="30" y="20" width="10" height="10" fill="#1e40af"/>
+  <rect x="56" y="20" width="10" height="10" fill="#1e40af"/>
+  <rect x="40" y="30" width="8" height="8" fill="#1e40af"/>
+  <rect x="48" y="30" width="8" height="8" fill="#1e40af"/>
+  
+  <!-- Green checkmark block -->
+  <rect x="75" y="45" width="24" height="24" fill="#10b981" rx="2"/>
+  <path d="M 82 55 L 88 61 L 95 50" stroke="white" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

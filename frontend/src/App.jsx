@@ -169,13 +169,20 @@ function App() {
       />
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         <header className="mb-8 flex justify-between items-start">
-          <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">
-              Task Generator
-            </h1>
-            <p className="text-gray-600">
-              Transform your meeting minutes into actionable tasks using AI
-            </p>
+          <div className="flex items-center gap-4">
+            <img 
+              src="/logo.svg" 
+              alt="Task Generator Logo" 
+              className="w-16 h-16 flex-shrink-0"
+            />
+            <div>
+              <h1 className="text-4xl font-bold text-gray-900 mb-2">
+                Task Generator
+              </h1>
+              <p className="text-gray-600">
+                Transform your meeting minutes into actionable tasks using AI
+              </p>
+            </div>
           </div>
           <JiraConnectionStatus 
             configured={jiraConfigured} 
