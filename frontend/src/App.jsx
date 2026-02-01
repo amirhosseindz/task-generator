@@ -3,6 +3,7 @@ import MeetingMinutesInput from './components/MeetingMinutesInput';
 import TaskList from './components/TaskList';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorMessage from './components/ErrorMessage';
+import MessageDialog from './components/MessageDialog';
 import JiraConnectionStatus from './components/jira/JiraConnectionStatus';
 import JiraExportPanel from './components/jira/JiraExportPanel';
 import { generateTasks } from './services/api.service';
@@ -16,6 +17,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showExportPanel, setShowExportPanel] = useState(false);
+  const [exportSuccessMessage, setExportSuccessMessage] = useState(null);
 
   // Generate UUID for tasks
   const generateTaskId = () => {
@@ -141,6 +143,14 @@ function App() {
       }
     });
     setExportedTasks(newExportedTasks);
+    
+    // Show success message in parent component
+    if (results.length > 0) {
+      setExportSuccessMessage(
+        `Successfully exported ${results.length} task${results.length !== 1 ? 's' : ''} to Jira!`
+      );
+    }
+    
     setShowExportPanel(false);
   };
 
@@ -150,6 +160,13 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <MessageDialog
+        isOpen={!!exportSuccessMessage}
+        variant="success"
+        title="Export Successful"
+        message={exportSuccessMessage || undefined}
+        onClose={() => setExportSuccessMessage(null)}
+      />
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         <header className="mb-8 flex justify-between items-start">
           <div>

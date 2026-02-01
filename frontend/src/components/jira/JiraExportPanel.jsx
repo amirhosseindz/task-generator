@@ -39,6 +39,7 @@ const JiraExportPanel = ({ tasks, onExport, onClose }) => {
       const successful = [];
       const failed = [];
 
+      // Handle array format (legacy)
       if (Array.isArray(exportResults)) {
         exportResults.forEach((result) => {
           if (result.issueKey && result.taskId) {
@@ -56,10 +57,30 @@ const JiraExportPanel = ({ tasks, onExport, onClose }) => {
             });
           }
         });
-      } else if (exportResults.error) {
-        // Single error response
+      } 
+      // Handle object format (current backend format: { taskId: { issueKey, url, success } })
+      else if (exportResults.results && typeof exportResults.results === 'object') {
+        Object.entries(exportResults.results).forEach(([taskId, result]) => {
+          if (result.success && result.issueKey) {
+            successful.push({
+              taskId: taskId,
+              issueKey: result.issueKey,
+              url: result.url,
+              taskSubject: tasks.find(t => t.id === taskId)?.subject,
+            });
+          } else {
+            failed.push({
+              taskId: taskId,
+              message: result.error || 'Export failed',
+              taskSubject: tasks.find(t => t.id === taskId)?.subject,
+            });
+          }
+        });
+      } 
+      // Handle error response
+      else if (exportResults.error) {
         failed.push({
-          message: exportResults.error,
+          message: exportResults.error.message || exportResults.error,
         });
       }
 
@@ -67,7 +88,7 @@ const JiraExportPanel = ({ tasks, onExport, onClose }) => {
       setErrors(failed);
       setProgress(null);
 
-      // Call parent callback with results
+      // Call parent callback with results (parent will show success message)
       if (onExport && successful.length > 0) {
         onExport(successful);
       }
@@ -90,6 +111,7 @@ const JiraExportPanel = ({ tasks, onExport, onClose }) => {
       // User can close modal but keep panel open to export more
     }
   };
+
 
   return (
     <>
