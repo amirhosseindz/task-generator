@@ -44,8 +44,8 @@ graph TB
     FE_PROD -->|API| BE_PROD
     BE_DEV --> OPENAI
     BE_PROD --> OPENAI
-    BE_DEV -->|OAuth / MCP| JIRA
-    BE_PROD -->|OAuth / MCP| JIRA
+    BE_DEV -->|OAuth| JIRA
+    BE_PROD -->|OAuth| JIRA
 ```
 
 ## Prerequisites
