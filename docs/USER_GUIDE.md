@@ -38,17 +38,98 @@ This guide provides step-by-step instructions for using the Task Generator appli
 
 2. **Example Meeting Minutes:**
    ```
-   Team Meeting - January 15, 2024
-   
-   Discussion:
-   - Need to implement user authentication
-   - Database migration required
-   - API documentation needs updating
-   
-   Action Items:
-   - John: Set up authentication middleware by end of week
-   - Sarah: Create migration scripts for database
-   - Mike: Update API docs with new endpoints
+   ACME Corporation - Q1 Product Development Meeting
+   Date: January 28, 2026
+   Time: 2:00 PM - 4:15 PM EST
+   Location: Conference Room B / Zoom Hybrid
+   Attendees: Amirhossein Dashtizadeh (Product Manager, QA Manager), Masoud Omidvar (Engineering Lead, UX Designer, Marketing Director, Backend Developer)
+   Absent: Tom Wilson (Sales Lead) - sick leave
+
+   AGENDA:
+   1. Q4 2025 Product Performance Review
+   2. New Feature Proposals for Q1 2026
+   3. Mobile App Launch Timeline
+   4. Customer Feedback Analysis
+   5. Budget Allocation
+   6. Action Items and Next Steps
+
+   ---
+
+   MEETING MINUTES:
+
+   1. Q4 2025 PRODUCT PERFORMANCE REVIEW
+   Amirhossein Dashtizadeh opened the meeting by presenting Q4 metrics. The dashboard redesign increased user engagement by 34%, but the checkout flow still has a 23% abandonment rate. Masoud Omidvar noted that the API response times improved by 40% after the infrastructure upgrade in November.
+
+   Masoud Omidvar shared user research findings showing that 67% of users struggle with the search functionality. Masoud Omidvar mentioned that customer support tickets related to search increased by 15% in December.
+
+   DISCUSSION: The team agreed that improving search and checkout flow should be top priorities for Q1.
+
+   2. NEW FEATURE PROPOSALS FOR Q1 2026
+   Masoud Omidvar proposed implementing real-time collaboration features, allowing multiple users to work on the same document simultaneously. This would require WebSocket integration and significant backend refactoring. Estimated timeline: 8-10 weeks.
+
+   Masoud Omidvar presented mockups for a new onboarding tutorial system. User testing showed a 45% improvement in feature discovery among new users. Development effort: 4-6 weeks.
+
+   Amirhossein Dashtizadeh raised concerns about testing capacity, mentioning that the QA team is currently at 110% capacity. She requested two additional QA engineers to handle the increased workload.
+
+   Masoud Omidvar suggested migrating the notification system to a microservices architecture to improve scalability. This would also enable push notifications for mobile users.
+
+   DISCUSSION: Team debated priorities. Amirhossein Dashtizadeh emphasized that the mobile app launch must take precedence, as it's already been promised to key enterprise clients.
+
+   3. MOBILE APP LAUNCH TIMELINE
+   Masoud Omidvar reported that marketing materials are ready, but the app store approval process may take 2-3 weeks. He stressed that we need to submit by February 15th to meet the March 1st launch commitment.
+
+   Masoud Omidvar expressed concerns about the mobile app's offline functionality, stating it's only 70% complete. Critical bugs were found in data synchronization when users go offline and come back online.
+
+   Masoud Omidvar mentioned that the iOS version needs accessibility improvements to meet WCAG 2.1 AA standards. Current compliance is only 60%.
+
+   Amirhossein Dashtizadeh shared that mobile testing has identified 23 high-priority bugs and 47 medium-priority issues. She recommended delaying the launch by two weeks to ensure quality.
+
+   DECISION: After heated discussion, Amirhossein Dashtizadeh decided to proceed with March 1st launch but with a phased rollout - starting with 10% of users, then gradually increasing if no critical issues arise. The team will work overtime in February to address P0 and P1 bugs.
+
+   4. CUSTOMER FEEDBACK ANALYSIS
+   Masoud Omidvar presented findings from 500+ customer interviews conducted in Q4. Top requests:
+   - Dark mode (requested by 78% of respondents)
+   - Bulk import/export functionality (63%)
+   - Advanced filtering options (59%)
+   - Integration with Salesforce and HubSpot (54%)
+   - Customizable dashboards (51%)
+
+   Amirhossein Dashtizadeh noted that dark mode is relatively easy to implement and would provide quick wins for user satisfaction.
+
+   Masoud Omidvar mentioned that the Salesforce integration has been requested by three enterprise clients worth $2M+ in annual revenue. This should be prioritized for business reasons.
+
+   5. BUDGET ALLOCATION
+   Amirhossein Dashtizadeh reviewed the Q1 budget: $450,000 total for product development.
+   - Engineering: $280,000
+   - Design: $80,000
+   - QA: $60,000
+   - Infrastructure: $30,000
+
+   Amirhossein Dashtizadeh requested an additional $40,000 to hire two contract QA engineers for three months to handle mobile app testing and the increased feature development workload.
+
+   Masoud Omidvar requested $15,000 for upgraded development tools and cloud infrastructure to support the real-time collaboration features.
+
+   Masoud Omidvar requested $10,000 for additional user research sessions and usability testing.
+
+   DECISION: Amirhossein Dashtizadeh approved Amirhossein Dashtizadeh's request for QA contractors ($40,000 from reserve budget) and Masoud Omidvar's user research budget ($10,000). Masoud Omidvar's infrastructure request was approved at $12,000 with the condition that he provide detailed cost-benefit analysis.
+
+   6. ACTION ITEMS AND NEXT STEPS
+   The team identified critical path items for Q1 success and assigned responsibilities.
+
+   OPEN QUESTIONS:
+   - Should we sunset the legacy admin panel or continue maintaining it? (Masoud Omidvar raised this but no decision was made)
+   - What's our strategy for GDPR compliance with the new data synchronization features? (Amirhossein Dashtizadeh asked but Amirhossein Dashtizadeh said this needs legal review)
+   - Do we have enough server capacity for the expected mobile app user load? (Masoud Omidvar expressed concerns but Masoud Omidvar said he'd investigate)
+
+   NEXT MEETING: February 11, 2026, 2:00 PM EST
+
+   ---
+
+   NOTES:
+   - Tom Wilson to be briefed separately on mobile app launch decisions
+   - Masoud Omidvar will send marketing timeline to the team by January 30th
+   - All P0 mobile bugs must be documented in Jira by end of week
+   - Amirhossein Dashtizadeh will present Q1 roadmap to executive team on February 5th
    ```
 
 ### Step 2: Generate Tasks
