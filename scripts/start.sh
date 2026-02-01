@@ -134,7 +134,7 @@ fi
 
 # Check and prompt for OpenAI API key if not already set
 CURRENT_API_KEY=$(grep "^OPENAI_API_KEY=" "$BACKEND_ENV_FILE" | cut -d '=' -f2- | tr -d '"' || echo "")
-if [ -z "$CURRENT_API_KEY" ] || [ "$CURRENT_API_KEY" = "your_openai_api_key_here" ] || [ "$CURRENT_API_KEY" = "\${OPENAI_API_KEY}" ]; then
+if [ -z "$CURRENT_API_KEY" ] || [ "$CURRENT_API_KEY" = "your_openai_api_key_here" ] || [ "$CURRENT_API_KEY" = "\${OPENAI_API_KEY}" ] || [ "$CURRENT_API_KEY" = "sk-your-api-key-here" ]; then
     echo ""
     echo "🔑 OpenAI API Configuration"
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -159,24 +159,23 @@ else
     OPENAI_API_KEY="$CURRENT_API_KEY"
 fi
 
-# Check and prompt for OpenAI model if not already set
+# Check and prompt for OpenAI model
 CURRENT_MODEL=$(grep "^OPENAI_MODEL=" "$BACKEND_ENV_FILE" | cut -d '=' -f2- | tr -d '"' || echo "")
-if [ -z "$CURRENT_MODEL" ]; then
-    echo ""
-    read -p "Enter OpenAI Model [default: gpt-4o-mini]: " OPENAI_MODEL
-    OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
-    
-    # Update the model
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        sed -i.bak "s|^OPENAI_MODEL=.*|OPENAI_MODEL=$OPENAI_MODEL|" "$BACKEND_ENV_FILE"
-        rm -f "${BACKEND_ENV_FILE}.bak"
-    else
-        sed -i "s|^OPENAI_MODEL=.*|OPENAI_MODEL=$OPENAI_MODEL|" "$BACKEND_ENV_FILE"
-    fi
-    echo "✅ OpenAI Model configured: $OPENAI_MODEL"
+# Always prompt for model to allow user to confirm or change it
+echo ""
+# Use current model as default if it exists, otherwise use gpt-4o-mini
+DEFAULT_MODEL=${CURRENT_MODEL:-gpt-4o-mini}
+read -p "Enter OpenAI Model [default: $DEFAULT_MODEL]: " OPENAI_MODEL
+OPENAI_MODEL=${OPENAI_MODEL:-$DEFAULT_MODEL}
+
+# Update the model
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    sed -i.bak "s|^OPENAI_MODEL=.*|OPENAI_MODEL=$OPENAI_MODEL|" "$BACKEND_ENV_FILE"
+    rm -f "${BACKEND_ENV_FILE}.bak"
 else
-    echo "✅ OpenAI Model already configured in $BACKEND_ENV_FILE: $CURRENT_MODEL (skipping prompt)"
+    sed -i "s|^OPENAI_MODEL=.*|OPENAI_MODEL=$OPENAI_MODEL|" "$BACKEND_ENV_FILE"
 fi
+echo "✅ OpenAI Model configured: $OPENAI_MODEL"
 
 # Setup docker.env file if it doesn't exist (needed for BACKEND_PORT in OAUTH_REDIRECT_URI)
 if [ ! -f "docker.env" ]; then
